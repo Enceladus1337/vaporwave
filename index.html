@@ -1,111 +1,153 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vaporwave Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>永遠の幻影 – Vaporwave Shrine</title>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap');body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: #0d0d0d;
-  color: #fff;
-  overflow: hidden;
-  text-align: center;
-}
-
-.overlay {
-  position: absolute;
-  width: 100vw;
-  height: 100vh;
-  background: url('https://i.supaimg.com/3222ef04-da49-4b14-9da1-680ea818f1db.jpg') no-repeat center center/cover;
-  z-index: -1;
-}
-
-.quote {
-  position: relative;
-  margin-top: 50px;
-  font-size: 1rem;
-  color: #ff6ec7;
-  animation: glitch 2s infinite;
-}
-
-@keyframes glitch {
-  0% { text-shadow: 2px 2px #00fff7, -2px -2px #ff00ff; }
-  50% { text-shadow: -2px 2px #ff00ff, 2px -2px #00fff7; }
-  100% { text-shadow: 2px -2px #00fff7, -2px 2px #ff00ff; }
-}
-
-.controls {
-  margin-top: 40px;
-}
-
-.btn {
-  background: linear-gradient(145deg, #2e2e2e, #5c0000);
-  border: 2px solid #ff6ec7;
-  color: #ff6ec7;
-  padding: 10px 20px;
-  margin: 10px;
-  cursor: pointer;
-  font-size: 1rem;
-  border-radius: 6px;
-  transition: background 0.3s ease;
-}
-
-.btn:hover {
-  background: linear-gradient(145deg, #5c0000, #2e2e2e);
-}
-
-#track-name {
-  margin-top: 20px;
-  color: #aaa;
-  font-size: 0.9rem;
-  font-family: 'Segoe UI', sans-serif;
-}
-
+    body {
+      margin: 0; padding: 0;
+      background-color: #0a0a0a;
+      font-family: 'ZCOOL KuaiLe', cursive;
+      color: #fff; text-align: center;
+      overflow: hidden;
+    }
+    .overlay {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100vh; gap: 20px;
+    }
+    h1 {
+      font-size: 3.5rem;
+      text-shadow: 2px 2px #ff00ff, -2px -2px #00ffff;
+    }
+    .quote {
+      font-size: 1.5rem; opacity: 0.85;
+      animation: glitch 1.5s infinite;
+    }
+    .bust {
+      width: 280px; border-radius: 16px;
+      filter: grayscale(100%);
+      box-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff;
+      animation: float 4s ease-in-out infinite;
+    }
+    .player {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #333; border-radius: 14px;
+      padding: 12px 20px;
+      display: flex; gap: 20px;
+      align-items: center; backdrop-filter: blur(8px);
+      margin-top: 20px;
+    }
+    .btn {
+      background: transparent;
+      border: 2px solid #ff00ff;
+      color: #fff;
+      padding: 10px 18px;
+      font-size: 1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #ff00ff22;
+      box-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
+      transform: scale(1.05);
+    }
+    #track-name {
+      font-size: 1rem; font-weight: 500;
+      color: #ffccff;
+    }
+    audio { display: none; }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes glitch {
+      0%   { text-shadow: 1px 1px #ff00ff, -1px -1px #00ffff; }
+      50%  { text-shadow: 2px -2px #ff00ff, -2px 2px #00ffff; }
+      100% { text-shadow: -1px 2px #ff00ff, 1px -2px #00ffff; }
+    }
   </style>
 </head>
 <body>
-  <div class="overlay"></div>  <div class="quote" id="quote">永遠に続く夢 - An eternal dream</div>  <div class="controls">
-    <button class="btn" onclick="togglePlay()" id="play-btn">▶</button>
-    <button class="btn" onclick="nextTrack()">Next</button>
-    <div id="track-name"></div>
-  </div><audio id="player"></audio>  <script>
-    const player = document.getElementById("player");
-    const playBtn = document.getElementById("play-btn");
-    const trackName = document.getElementById("track-name");
+  <div class="overlay">
+    <h1>永遠の幻影</h1>
+    <p class="quote" id="quote">ロード中...</p>
+    <img src="https://i.supaimg.com/3222ef04-da49-4b14-9da1-680ea818f1db.jpg"
+         class="bust" alt="vaporwave bust"/>
 
-    const tracks = [
-      { name: "Neon Dusk", url: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Music_for_Video/Monplaisir/Fuck_Reality/Monplaisir_-_02_-_Neon_Dreams.mp3" },
-      { name: "1980X", url: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Music_for_Video/Nihilore/Futurism/Nihilore_-_01_-_1980X.mp3" },
-      { name: "Slow Cruise", url: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Oddio_Overplay/KieLoBot/Smooth_Arrival/KieLoBot_-_03_-_Smooth_Cruise.mp3" },
-      { name: "After Hours", url: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Music_for_Video/Monplaisir/Fuck_Reality/Monplaisir_-_04_-_After_Hours.mp3" },
-      { name: "Purple Drive", url: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Oddio_Overplay/KieLoBot/Smooth_Arrival/KieLoBot_-_01_-_Purple_Sky.mp3" }
+    <div class="player">
+      <button class="btn" onclick="togglePlay()" id="play-btn">Play</button>
+      <button class="btn" onclick="nextTrack()">Next</button>
+      <span id="track-name">Track 1</span>
+    </div>
+
+    <audio id="audio" loop></audio>
+  </div>
+
+  <script>
+    const quotes = [
+      "未来は夢の中で眠っている。",
+      "過去は消えないノイズ。",
+      "この空間は現実の影。",
+      "思考はサウンドに溶ける。",
+      "時間は泡のように消える。",
+      "目を閉じれば、そこに都市。",
+      "永遠はリバーブの中にある。"
     ];
 
-    let currentTrack = 0;
+    const tracks = [
+      { name: "Neon Dusk",        url: "https://files.catbox.moe/wvn3g9.mp3" },
+      { name: "Synthetic Dreams",  url: "https://files.catbox.moe/2rcp3y.mp3" },
+      { name: "Lost in Shibuya",   url: "https://files.catbox.moe/qk9rjz.mp3" }
+    ];
 
-    function loadTrack(index) {
-      player.src = tracks[index].url;
-      trackName.textContent = "Now playing: " + tracks[index].name;
+    let currentTrack = 0, isPlaying = false;
+    const quoteEl = document.getElementById("quote");
+    const trackNameEl = document.getElementById("track-name");
+    const audioEl = document.getElementById("audio");
+    const playBtn   = document.getElementById("play-btn");
+
+    audioEl.crossOrigin = "anonymous";
+
+    function rotateQuotes() {
+      let i = 0;
+      setInterval(() => {
+        quoteEl.textContent = quotes[i];
+        i = (i + 1) % quotes.length;
+      }, 4000);
     }
 
-    function togglePlay() {
-      if (player.paused) {
-        player.play();
-        playBtn.textContent = "⏸";
-      } else {
-        player.pause();
-        playBtn.textContent = "▶";
-      }
+    function loadTrack(i) {
+      audioEl.src = tracks[i].url;
+      audioEl.load();                     // 🔑 ensure it fetches
+      trackNameEl.textContent = tracks[i].name;
     }
 
     function nextTrack() {
       currentTrack = (currentTrack + 1) % tracks.length;
       loadTrack(currentTrack);
-      player.play();
-      playBtn.textContent = "⏸";
+      if (isPlaying) audioEl.play();
     }
 
-    // Load the first track by default
+    function togglePlay() {
+      if (!isPlaying) {
+        audioEl.play().catch(e => console.log("Play blocked:", e));
+        isPlaying = true;
+        playBtn.textContent = "Pause";
+      } else {
+        audioEl.pause();
+        isPlaying = false;
+        playBtn.textContent = "Play";
+      }
+    }
+
+    // init
+    rotateQuotes();
     loadTrack(currentTrack);
-  </script></body></html>
+  </script>
+</body>
+</html>
