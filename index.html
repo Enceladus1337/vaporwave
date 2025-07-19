@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>永遠の幻影 – Vaporwave Sound Shrine</title>
+  <title>永遠の幻影 – Vaporwave Shrine</title>
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
   <style>
     body {
@@ -32,7 +32,7 @@
 
     .quote {
       font-size: 1.5rem;
-      opacity: 0.8;
+      opacity: 0.85;
       animation: glitch 1.5s infinite;
     }
 
@@ -47,29 +47,38 @@
     .player {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid #333;
-      border-radius: 10px;
-      padding: 10px 20px;
+      border-radius: 14px;
+      padding: 12px 20px;
       display: flex;
-      gap: 15px;
+      gap: 20px;
       align-items: center;
       justify-content: center;
       backdrop-filter: blur(8px);
       margin-top: 20px;
     }
 
-    .player button {
-      background: none;
+    .btn {
+      background-color: transparent;
       border: 2px solid #ff00ff;
       color: #fff;
-      padding: 8px 14px;
+      padding: 10px 18px;
       font-size: 1rem;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
-      transition: 0.3s;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
     }
 
-    .player button:hover {
-      background: #ff00ff33;
+    .btn:hover {
+      background-color: #ff00ff22;
+      box-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
+      transform: scale(1.05);
+    }
+
+    #track-name {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #ffccff;
     }
 
     audio {
@@ -96,12 +105,12 @@
     <img src="https://i.supaimg.com/3222ef04-da49-4b14-9da1-680ea818f1db.jpg" class="bust" alt="vaporwave bust"/>
 
     <div class="player">
-      <button onclick="togglePlay()">▶ / ⏸</button>
-      <button onclick="nextTrack()">⏭ Next</button>
+      <button class="btn" onclick="togglePlay()" id="play-btn">Play</button>
+      <button class="btn" onclick="nextTrack()">Next</button>
       <span id="track-name">Track 1</span>
     </div>
 
-    <audio id="audio" autoplay loop></audio>
+    <audio id="audio" loop></audio>
   </div>
 
   <script>
@@ -116,24 +125,18 @@
     ];
 
     const tracks = [
-      {
-        name: "Neon Dusk",
-        url: "https://files.catbox.moe/wvn3g9.mp3"
-      },
-      {
-        name: "Synthetic Dreams",
-        url: "https://files.catbox.moe/2rcp3y.mp3"
-      },
-      {
-        name: "Lost in Shibuya",
-        url: "https://files.catbox.moe/qk9rjz.mp3"
-      }
+      { name: "Neon Dusk", url: "https://files.catbox.moe/wvn3g9.mp3" },
+      { name: "Synthetic Dreams", url: "https://files.catbox.moe/2rcp3y.mp3" },
+      { name: "Lost in Shibuya", url: "https://files.catbox.moe/qk9rjz.mp3" }
     ];
 
     let currentTrack = 0;
+    let isPlaying = false;
+
     const quoteEl = document.getElementById("quote");
     const trackNameEl = document.getElementById("track-name");
     const audioEl = document.getElementById("audio");
+    const playBtn = document.getElementById("play-btn");
 
     function rotateQuotes() {
       let i = 0;
@@ -146,22 +149,27 @@
     function loadTrack(i) {
       audioEl.src = tracks[i].url;
       trackNameEl.textContent = tracks[i].name;
-      audioEl.play();
     }
 
     function nextTrack() {
       currentTrack = (currentTrack + 1) % tracks.length;
       loadTrack(currentTrack);
+      if (isPlaying) audioEl.play();
     }
 
     function togglePlay() {
       if (audioEl.paused) {
         audioEl.play();
+        isPlaying = true;
+        playBtn.textContent = "Pause";
       } else {
         audioEl.pause();
+        isPlaying = false;
+        playBtn.textContent = "Play";
       }
     }
 
+    // Init
     rotateQuotes();
     loadTrack(currentTrack);
   </script>
