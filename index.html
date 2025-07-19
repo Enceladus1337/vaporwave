@@ -2,90 +2,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vaporwave Sound Temple</title>
+  <title>Vaporwave Portal</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');body {
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');body {
   margin: 0;
   padding: 0;
-  background: #0e0e0e;
+  font-family: 'Press Start 2P', monospace;
+  background: #0d0d0d;
   color: #fff;
-  font-family: "Segoe UI", "Segoe UI Variable", sans-serif;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
+  text-align: center;
 }
 
-.glitch {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2rem;
-  color: #f26f61;
-  text-shadow: 1px 0 #0ff, -1px 0 #f0f, 0 1px #0ff, 0 -1px #f0f;
-  animation: glitch 1s infinite;
+.overlay {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background: url('https://i.supaimg.com/3222ef04-da49-4b14-9da1-680ea818f1db.jpg') no-repeat center center/cover;
+  z-index: -1;
+}
+
+.quote {
+  position: relative;
+  margin-top: 50px;
+  font-size: 1rem;
+  color: #ff6ec7;
+  animation: glitch 2s infinite;
 }
 
 @keyframes glitch {
-  0% { transform: translate(1px, -1px); }
-  20% { transform: translate(-1px, 2px); }
-  40% { transform: translate(1px, 1px); }
-  60% { transform: translate(-1px, -2px); }
-  80% { transform: translate(2px, 1px); }
-  100% { transform: translate(-1px, 1px); }
+  0% { text-shadow: 2px 2px #00fff7, -2px -2px #ff00ff; }
+  50% { text-shadow: -2px 2px #ff00ff, 2px -2px #00fff7; }
+  100% { text-shadow: 2px -2px #00fff7, -2px 2px #ff00ff; }
 }
 
-#controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+.controls {
+  margin-top: 40px;
 }
 
 .btn {
-  background: linear-gradient(135deg, #2e2e2e 0%, #8b0000 100%);
-  color: white;
-  border: none;
+  background: #1a1a1a;
+  border: 2px solid #ff6ec7;
+  color: #ff6ec7;
   padding: 10px 20px;
-  font-size: 1rem;
-  border-radius: 8px;
+  margin: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 10px #f26f61;
+  font-size: 1rem;
 }
 
 #track-name {
   margin-top: 20px;
-  font-size: 1.2rem;
   color: #aaa;
-}
-
-#volume {
-  width: 200px;
-}
-
-iframe {
-  margin-top: 40px;
+  font-size: 0.9rem;
 }
 
   </style>
 </head>
 <body>
-  <div class="glitch">永遠に続く夢 - Endless Dream</div>  <div id="controls">
-    <button class="btn" onclick="playPause()" id="play-btn">▶ Play</button>
-    <button class="btn" onclick="nextTrack()">⏭ Next</button>
-    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" onchange="setVolume(this.value)">
-    <div id="track-name">Track: None</div>
-  </div>  <iframe style="border-radius:12px"
-    src="https://open.spotify.com/embed/playlist/37i9dQZF1EIdqaKEQt1UBv?utm_source=generator"
-    width="300" height="80" frameBorder="0" allowtransparency="true" allow="encrypted-media">
-  </iframe><audio id="player"></audio>
+  <div class="overlay"></div>  <div class="quote" id="quote">永遠に続く夢 - An eternal dream</div>  <div class="controls">
+    <button class="btn" onclick="togglePlay()" id="play-btn">▶</button>
+    <button class="btn" onclick="nextTrack()">Next</button>
+    <div id="track-name"></div>
+  </div><audio id="player"></audio>
 
   <script>
+    const player = document.getElementById("player");
+    const playBtn = document.getElementById("play-btn");
+    const trackName = document.getElementById("track-name");
+
     const tracks = [
       { name: "Neon Dusk", url: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Music_for_Video/Monplaisir/Fuck_Reality/Monplaisir_-_02_-_Neon_Dreams.mp3" },
       { name: "1980X", url: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Music_for_Video/Nihilore/Futurism/Nihilore_-_01_-_1980X.mp3" },
@@ -95,35 +79,30 @@ iframe {
     ];
 
     let currentTrack = 0;
-    const player = document.getElementById("player");
-    const playBtn = document.getElementById("play-btn");
-    const trackName = document.getElementById("track-name");
 
-    function playPause() {
-      if (!player.src) {
-        player.src = tracks[currentTrack].url;
-        trackName.textContent = "Track: " + tracks[currentTrack].name;
+    function loadTrack(index) {
+      player.src = tracks[index].url;
+      trackName.textContent = "Now playing: " + tracks[index].name;
+    }
+
+    function togglePlay() {
+      if (player.paused) {
         player.play();
-        playBtn.textContent = "⏸ Pause";
-      } else if (player.paused) {
-        player.play();
-        playBtn.textContent = "⏸ Pause";
+        playBtn.textContent = "⏸";
       } else {
         player.pause();
-        playBtn.textContent = "▶ Play";
+        playBtn.textContent = "▶";
       }
     }
 
     function nextTrack() {
       currentTrack = (currentTrack + 1) % tracks.length;
-      player.src = tracks[currentTrack].url;
-      trackName.textContent = "Track: " + tracks[currentTrack].name;
+      loadTrack(currentTrack);
       player.play();
-      playBtn.textContent = "⏸ Pause";
+      playBtn.textContent = "⏸";
     }
 
-    function setVolume(val) {
-      player.volume = val;
-    }
+    // Load the first track by default
+    loadTrack(currentTrack);
   </script></body>
 </html>
