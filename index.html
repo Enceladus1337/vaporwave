@@ -3,12 +3,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>永遠の幻影 – Vaporwave Shrine</title>
-  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0; padding: 0;
       background-color: #0a0a0a;
-      font-family: 'Segoe UI Variable', 'ZCOOL KuaiLe', sans-serif;
+      font-family: 'Inter', sans-serif;
       color: #fff; text-align: center;
       overflow: hidden;
     }
@@ -35,29 +35,29 @@
       background: rgba(255,255,255,0.05);
       border: 1px solid #333; border-radius: 14px;
       padding: 12px 20px;
-      display: flex; gap: 20px; flex-wrap: wrap;
-      align-items: center; justify-content: center;
-      backdrop-filter: blur(8px);
+      display: flex; gap: 20px;
+      align-items: center; backdrop-filter: blur(8px);
       margin-top: 20px;
     }
     .btn {
-      background: linear-gradient(to right, #8b0000, #333);
-      border: 2px solid #ff00ff;
-      color: #fff; font-weight: bold;
+      background: linear-gradient(145deg, #2c2c2c, #8b0000);
+      border: none;
+      color: #fff;
       padding: 10px 18px;
       font-size: 1rem;
+      font-weight: bold;
       border-radius: 12px;
       cursor: pointer;
       text-transform: uppercase;
       transition: all 0.3s ease;
     }
     .btn:hover {
-      background-color: #ff00ff22;
-      box-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
+      background: linear-gradient(145deg, #8b0000, #2c2c2c);
+      box-shadow: 0 0 10px #ff0055, 0 0 20px #ff0088;
       transform: scale(1.05);
     }
     #track-name {
-      font-size: 1rem; font-weight: bold;
+      font-size: 1rem; font-weight: 700;
       color: #ffccff;
     }
     audio { display: none; }
@@ -80,7 +80,7 @@
          class="bust" alt="vaporwave bust"/><div class="player">
   <button class="btn" onclick="togglePlay()" id="play-btn">Play</button>
   <button class="btn" onclick="nextTrack()">Next</button>
-  <button class="btn" onclick="playRadio()">Stream Radio</button>
+  <button class="btn" onclick="streamRadio()">Stream Radio</button>
   <span id="track-name">Track 1</span>
 </div>
 
@@ -103,12 +103,7 @@
       { name: "Lost in Shibuya",   url: "https://files.catbox.moe/qk9rjz.mp3" }
     ];
 
-    const radio = {
-      name: "Vaporwave Radio",
-      url: "https://streaming.radio.co/s95fa8bb6b/listen"  // fallback stream
-    };
-
-    let currentTrack = 0, isPlaying = false, isRadio = false;
+    let currentTrack = 0, isPlaying = false;
     const quoteEl = document.getElementById("quote");
     const trackNameEl = document.getElementById("track-name");
     const audioEl = document.getElementById("audio");
@@ -125,14 +120,12 @@
     }
 
     function loadTrack(i) {
-      isRadio = false;
       audioEl.src = tracks[i].url;
-      audioEl.load();
+      audioEl.load();                     // 🔑 ensure it fetches
       trackNameEl.textContent = tracks[i].name;
     }
 
     function nextTrack() {
-      if (isRadio) return;
       currentTrack = (currentTrack + 1) % tracks.length;
       loadTrack(currentTrack);
       if (isPlaying) audioEl.play();
@@ -140,10 +133,9 @@
 
     function togglePlay() {
       if (!isPlaying) {
-        audioEl.play().then(() => {
-          isPlaying = true;
-          playBtn.textContent = "Pause";
-        }).catch(e => console.log("Play blocked:", e));
+        audioEl.play().catch(e => console.log("Play blocked:", e));
+        isPlaying = true;
+        playBtn.textContent = "Pause";
       } else {
         audioEl.pause();
         isPlaying = false;
@@ -151,15 +143,12 @@
       }
     }
 
-    function playRadio() {
-      isRadio = true;
-      audioEl.src = radio.url;
-      audioEl.load();
-      audioEl.play().then(() => {
-        trackNameEl.textContent = radio.name;
-        playBtn.textContent = "Pause";
-        isPlaying = true;
-      }).catch(e => console.log("Radio play error:", e));
+    function streamRadio() {
+      isPlaying = true;
+      audioEl.src = "https://r-a-d.io/main.mp3";
+      trackNameEl.textContent = "Streaming: Vaporwave Radio";
+      playBtn.textContent = "Pause";
+      audioEl.play().catch(e => console.log("Autoplay blocked"));
     }
 
     // init
