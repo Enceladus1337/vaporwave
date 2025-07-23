@@ -1,83 +1,158 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Thumb Kiss 💗</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Satisfy&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>永遠の幻影 – Vaporwave Shrine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
-      background: linear-gradient(to right, #ffdde1, #ee9ca7);
-      font-family: 'Satisfy', cursive;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      color: white;
-      text-shadow: 0 0 10px #0005;
+      margin: 0; padding: 0;
+      background-color: #0a0a0a;
+      font-family: 'Inter', sans-serif;
+      color: #fff; text-align: center;
+      overflow: hidden;
     }
-    #heart {
-      font-size: 10rem;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.3s ease;
-    }
-    .pulse {
-      transform: scale(1.2);
+    .overlay {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100vh; gap: 20px;
     }
     h1 {
-      margin-bottom: 0.5rem;
-      font-size: 2.5rem;
+      font-size: 3.5rem;
+      text-shadow: 2px 2px #ff00ff, -2px -2px #00ffff;
     }
-    .room-link {
+    .quote {
+      font-size: 1.5rem; opacity: 0.85;
+      animation: glitch 1.5s infinite;
+    }
+    .bust {
+      width: 280px; border-radius: 16px;
+      filter: grayscale(100%);
+      box-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff;
+      animation: float 4s ease-in-out infinite;
+    }
+    .player {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #333; border-radius: 14px;
+      padding: 12px 20px;
+      display: flex; gap: 20px;
+      align-items: center; backdrop-filter: blur(8px);
+      margin-top: 20px;
+    }
+    .btn {
+      background: linear-gradient(145deg, #2c2c2c, #8b0000);
+      border: none;
+      color: #fff;
+      padding: 10px 18px;
       font-size: 1rem;
-      margin-top: 1rem;
-      background: rgba(255,255,255,0.2);
-      padding: 10px 15px;
-      border-radius: 10px;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      background: linear-gradient(145deg, #8b0000, #2c2c2c);
+      box-shadow: 0 0 10px #ff0055, 0 0 20px #ff0088;
+      transform: scale(1.05);
+    }
+    #track-name {
+      font-size: 1rem; font-weight: 700;
+      color: #ffccff;
+    }
+    audio { display: none; }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes glitch {
+      0%   { text-shadow: 1px 1px #ff00ff, -1px -1px #00ffff; }
+      50%  { text-shadow: 2px -2px #ff00ff, -2px 2px #00ffff; }
+      100% { text-shadow: -1px 2px #ff00ff, 1px -2px #00ffff; }
     }
   </style>
-  <script>
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_ID",
-      appId: "YOUR_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    let roomId = new URLSearchParams(window.location.search).get("room") || crypto.randomUUID();
-    history.replaceState({}, "", `?room=${roomId}`);
-    const roomRef = db.ref("rooms/" + roomId);
-
-    function sendPulse() {
-      roomRef.set({ pulse: Date.now() });
-    }
-
-    roomRef.on("value", snap => {
-      const data = snap.val();
-      if (data && Date.now() - data.pulse < 1000) {
-        navigator.vibrate([150, 50, 150]);
-        document.getElementById("heart").classList.add("pulse");
-        setTimeout(() => document.getElementById("heart").classList.remove("pulse"), 500);
-      }
-    });
-  </script>
 </head>
 <body>
-  <h1>Thumb Kiss 💓</h1>
-  <div id="heart" onclick="sendPulse()">💗</div>
-  <div class="room-link">Share this link:<br><code id="link"></code></div>
-  <script>
-    document.getElementById("link").textContent = window.location.href;
-  </script>
-</body>
+  <div class="overlay">
+    <h1>永遠の幻影</h1>
+    <p class="quote" id="quote">ロード中...</p>
+    <img src="https://i.supaimg.com/3222ef04-da49-4b14-9da1-680ea818f1db.jpg"
+         class="bust" alt="vaporwave bust"/><div class="player">
+  <button class="btn" onclick="togglePlay()" id="play-btn">Play</button>
+  <button class="btn" onclick="nextTrack()">Next</button>
+  <button class="btn" onclick="streamRadio()">Stream Radio</button>
+  <span id="track-name">Track 1</span>
+</div>
+
+<audio id="audio" loop></audio>
+
+  </div>  <script>
+    const quotes = [
+      "未来は夢の中で眠っている。",
+      "過去は消えないノイズ。",
+      "この空間は現実の影。",
+      "思考はサウンドに溶ける。",
+      "時間は泡のように消える。",
+      "目を閉じれば、そこに都市。",
+      "永遠はリバーブの中にある。"
+    ];
+
+    const tracks = [
+      { name: "Neon Dusk",        url: "https://files.catbox.moe/wvn3g9.mp3" },
+      { name: "Synthetic Dreams",  url: "https://files.catbox.moe/2rcp3y.mp3" },
+      { name: "Lost in Shibuya",   url: "https://files.catbox.moe/qk9rjz.mp3" }
+    ];
+
+    let currentTrack = 0, isPlaying = false;
+    const quoteEl = document.getElementById("quote");
+    const trackNameEl = document.getElementById("track-name");
+    const audioEl = document.getElementById("audio");
+    const playBtn   = document.getElementById("play-btn");
+
+    audioEl.crossOrigin = "anonymous";
+
+    function rotateQuotes() {
+      let i = 0;
+      setInterval(() => {
+        quoteEl.textContent = quotes[i];
+        i = (i + 1) % quotes.length;
+      }, 4000);
+    }
+
+    function loadTrack(i) {
+      audioEl.src = tracks[i].url;
+      audioEl.load();                     // 🔑 ensure it fetches
+      trackNameEl.textContent = tracks[i].name;
+    }
+
+    function nextTrack() {
+      currentTrack = (currentTrack + 1) % tracks.length;
+      loadTrack(currentTrack);
+      if (isPlaying) audioEl.play();
+    }
+
+    function togglePlay() {
+      if (!isPlaying) {
+        audioEl.play().catch(e => console.log("Play blocked:", e));
+        isPlaying = true;
+        playBtn.textContent = "Pause";
+      } else {
+        audioEl.pause();
+        isPlaying = false;
+        playBtn.textContent = "Play";
+      }
+    }
+
+    function streamRadio() {
+      isPlaying = true;
+      audioEl.src = "https://r-a-d.io/main.mp3";
+      trackNameEl.textContent = "Streaming: Vaporwave Radio";
+      playBtn.textContent = "Pause";
+      audioEl.play().catch(e => console.log("Autoplay blocked"));
+    }
+
+    // init
+    rotateQuotes();
+    loadTrack(currentTrack);
+  </script></body>
 </html>
