@@ -1,251 +1,83 @@
-// A single file "Thumb Kiss" application
-// by Gemini
-
-// 1. SETUP: Require necessary libraries
-const express = require('express');
-const http = require('http');
-const { Server } = require("socket.io");
-const path = require('path');
-
-// 2. INITIALIZATION: Create the app, server, and socket connection
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
-// This object will store the rooms and the clients in them
-const rooms = {};
-
-// 3. HTML & FRONTEND: This is the webpage that will be sent to the user.
-const HTML = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thumb Kiss</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400&display=swap');
-        :root {
-            --bg-color: #1a1a2e;
-            --primary-color: #e94560;
-            --secondary-color: #0f3460;
-            --font-color: #f0f0f0;
-        }
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-color);
-            color: var(--font-color);
-            font-family: 'Poppins', sans-serif;
-            overflow: hidden;
-        }
-        .container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            flex-direction: column;
-        }
-        #touch-area {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            user-select: none; /* Prevents text selection */
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        #ripple {
-            position: absolute;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            transform: scale(0);
-            opacity: 1;
-            animation: ripple-effect 1.5s ease-out forwards;
-        }
-        @keyframes ripple-effect {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-        #status-text {
-            z-index: 10;
-            font-size: 1.2rem;
-            padding: 0 20px;
-            pointer-events: none; /* Text doesn't block touch events */
-        }
-        #share-link {
-            background: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-top: 20px;
-            display: none; /* Hidden by default */
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thumb Kiss 💗</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Satisfy&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to right, #ffdde1, #ee9ca7);
+      font-family: 'Satisfy', cursive;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+      text-shadow: 0 0 10px #0005;
+    }
+    #heart {
+      font-size: 10rem;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.3s ease;
+    }
+    .pulse {
+      transform: scale(1.2);
+    }
+    h1 {
+      margin-bottom: 0.5rem;
+      font-size: 2.5rem;
+    }
+    .room-link {
+      font-size: 1rem;
+      margin-top: 1rem;
+      background: rgba(255,255,255,0.2);
+      padding: 10px 15px;
+      border-radius: 10px;
+    }
+  </style>
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let roomId = new URLSearchParams(window.location.search).get("room") || crypto.randomUUID();
+    history.replaceState({}, "", `?room=${roomId}`);
+    const roomRef = db.ref("rooms/" + roomId);
+
+    function sendPulse() {
+      roomRef.set({ pulse: Date.now() });
+    }
+
+    roomRef.on("value", snap => {
+      const data = snap.val();
+      if (data && Date.now() - data.pulse < 1000) {
+        navigator.vibrate([150, 50, 150]);
+        document.getElementById("heart").classList.add("pulse");
+        setTimeout(() => document.getElementById("heart").classList.remove("pulse"), 500);
+      }
+    });
+  </script>
 </head>
 <body>
-    <div class="container">
-        <div id="touch-area"></div>
-        <p id="status-text">Creating your private room...</p>
-        <a id="share-link" href="#">Copy & Share This Link</a>
-    </div>
-
-    <script src="/socket.io/socket.io.js"></script>
-
-    <script>
-        // CLIENT-SIDE JAVASCRIPT
-        const socket = io();
-        const touchArea = document.getElementById('touch-area');
-        const statusText = document.getElementById('status-text');
-        const shareLink = document.getElementById('share-link');
-        let heartbeatInterval;
-
-        // Extract room ID from URL path
-        let roomId = window.location.pathname.slice(1);
-
-        // If there's no room ID, we are the creator
-        if (!roomId) {
-            roomId = Math.random().toString(36).substring(2, 9);
-            history.pushState(null, '', '/' + roomId); // Update URL without reloading
-        }
-
-        // Tell the server which room we want to join
-        socket.emit('join_room', roomId);
-
-        // --- Event Listeners ---
-        socket.on('room_created', (id) => {
-            statusText.textContent = "Share this link with your partner to connect.";
-            shareLink.style.display = 'block';
-            shareLink.href = window.location.href;
-            shareLink.onclick = (e) => {
-                e.preventDefault();
-                navigator.clipboard.writeText(window.location.href).then(() => {
-                    statusText.textContent = "Link copied! Send it to them ❤️";
-                });
-            };
-        });
-
-        socket.on('room_full', () => {
-            statusText.textContent = "This room is already full.";
-        });
-        
-        socket.on('partner_joined', () => {
-            statusText.innerHTML = "You are connected! <br> Touch the screen to send a kiss.";
-            shareLink.style.display = 'none';
-        });
-
-        socket.on('partner_left', () => {
-            statusText.textContent = "Your partner has disconnected. Refresh to create a new room.";
-            if (heartbeatInterval) clearInterval(heartbeatInterval);
-        });
-
-        socket.on('kiss_received', (data) => {
-            if (data.type === 'start') {
-                // Vibrate with a heartbeat pattern
-                if (navigator.vibrate) {
-                    heartbeatInterval = setInterval(() => navigator.vibrate([100, 50, 100]), 250);
-                }
-            } else {
-                // Stop the vibration
-                if (navigator.vibrate) {
-                    clearInterval(heartbeatInterval);
-                    navigator.vibrate(0);
-                }
-            }
-        });
-        
-        // --- User Interaction ---
-        function createRipple(event) {
-            const ripple = document.createElement("div");
-            ripple.id = 'ripple';
-            touchArea.appendChild(ripple);
-            const x = event.clientX || event.touches[0].clientX;
-            const y = event.clientY || event.touches[0].clientY;
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-            ripple.onanimationend = () => ripple.remove();
-        }
-
-        // Send a 'start' event on touch
-        touchArea.addEventListener('touchstart', (e) => {
-            socket.emit('kiss_event', { type: 'start' });
-            createRipple(e);
-        }, { passive: true });
-
-        // Send an 'end' event on release
-        touchArea.addEventListener('touchend', () => {
-            socket.emit('kiss_event', { type: 'end' });
-        });
-    </script>
+  <h1>Thumb Kiss 💓</h1>
+  <div id="heart" onclick="sendPulse()">💗</div>
+  <div class="room-link">Share this link:<br><code id="link"></code></div>
+  <script>
+    document.getElementById("link").textContent = window.location.href;
+  </script>
 </body>
 </html>
-`;
-
-// 4. SERVER ROUTE: Serve the HTML file for any request
-app.get('/:roomId?', (req, res) => {
-    res.send(HTML);
-});
-
-// 5. SOCKET.IO LOGIC: Handle real-time connections
-io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
-
-    socket.on('join_room', (roomId) => {
-        socket.join(roomId);
-        socket.roomId = roomId; // Store roomId on the socket object
-
-        // Initialize room if it doesn't exist
-        if (!rooms[roomId]) {
-            rooms[roomId] = [];
-        }
-        rooms[roomId].push(socket.id);
-
-        const clientsInRoom = io.sockets.adapter.rooms.get(roomId);
-        const numClients = clientsInRoom ? clientsInRoom.size : 0;
-
-        if (numClients === 1) {
-            // First person in the room
-            socket.emit('room_created', roomId);
-        } else if (numClients === 2) {
-            // Second person joins, notify both
-            io.to(roomId).emit('partner_joined');
-        } else {
-            // Room is full, kick the new person
-            socket.leave(roomId);
-            socket.emit('room_full');
-        }
-
-        console.log(`User ${socket.id} joined room ${roomId}. Room size: ${numClients}`);
-    });
-
-    socket.on('kiss_event', (data) => {
-        // Broadcast the event to the other person in the room
-        socket.to(socket.roomId).emit('kiss_received', data);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-        if (socket.roomId && rooms[socket.roomId]) {
-            // Notify the other person in the room
-            io.to(socket.roomId).emit('partner_left');
-            // Clean up the room
-            delete rooms[socket.roomId];
-        }
-    });
-});
-
-// 6. START SERVER
-const PORT = 3000;
-server.listen(PORT, () => {
-    console.log(`Thumb Kiss server running on http://localhost:${PORT}`);
-});
